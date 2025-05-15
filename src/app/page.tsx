@@ -1,6 +1,7 @@
 'use client';
 import { DynamicForm } from '@/components/shared/dynamic-form/dynamic-form';
 import { FormField } from '@/components/shared/dynamic-form/types/form';
+import FormGenerator from './formGenerator';
 
 const fields: FormField[] = [
 	{
@@ -29,6 +30,21 @@ const fields: FormField[] = [
 		},
 	},
 	{
+		name: 'mobile',
+		label: 'Mobile',
+		type: 'text',
+		className: 'col-span-12 md:col-span-4',
+		value: '',
+		date: {
+			showTime: true,
+		},
+		render: false,
+		validationRules: {
+			required: true,
+			pattern: '^(?:\\+?255|0)(6[1-9]|7[1-9])[0-9]{7}$',
+		},
+	},
+	{
 		name: 'cd4Count',
 		type: 'number',
 		label: 'CD4 Count',
@@ -38,6 +54,7 @@ const fields: FormField[] = [
 		className: 'col-span-12 md:col-span-4',
 		validationRules: {
 			required: false,
+			min: 10,
 		},
 	},
 	{
@@ -114,7 +131,7 @@ const fields: FormField[] = [
 		render: true,
 		value: '',
 		parentId: 'cd4Count',
-		className: 'col-span-12 md:col-span-3',
+		className: 'col-span-12 md:col-span-12',
 		validationRules: {
 			required: true,
 		},
@@ -229,6 +246,9 @@ export default function Home() {
 	return (
 		<div className='grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]'>
 			<main className='flex flex-col gap-[32px] row-start-2 items-center sm:items-start'>
+				<FormGenerator />
+				<p> Hello humans!</p>
+
 				<DynamicForm
 					fields={fields}
 					onSubmit={(values: any) => {

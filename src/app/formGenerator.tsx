@@ -12,6 +12,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { useEffect } from 'react';
+import { FormField } from '@/components/shared/dynamic-form/types/form';
 
 const inputTypes = [
 	'text',
@@ -45,8 +46,8 @@ type ValidationRule = {
 
 type FormValues = {
 	parentId: string;
-	id: string;
-	labelName: string;
+	name: string;
+	label: string;
 	className: string;
 	type: string;
 	defaultValue: string;
@@ -58,6 +59,7 @@ type FormValues = {
 };
 
 export default function FormGenerator() {
+	const fields: any[] = [];
 	const {
 		register,
 		handleSubmit,
@@ -68,8 +70,8 @@ export default function FormGenerator() {
 	} = useForm<FormValues>({
 		defaultValues: {
 			parentId: '',
-			id: '',
-			labelName: '',
+			name: '',
+			label: '',
 			className: '',
 			type: '',
 			defaultValue: '',
@@ -114,7 +116,30 @@ export default function FormGenerator() {
 	}, [hasValidationRules]);
 
 	const onSubmit = (data: FormValues) => {
-		console.log(data);
+		if (data.hasValidationRules === 'yes') {
+			const entries = data.validationRules.map((rule) => {
+				let parsedValue;
+
+				if (rule.value === 'true') {
+					parsedValue = true;
+				} else if (rule.value === 'false') {
+					parsedValue = false;
+				} else if (!isNaN(Number(rule.value))) {
+					parsedValue = Number(rule.value);
+				} else {
+					parsedValue = rule.value;
+				}
+
+				return [rule.key, parsedValue];
+			});
+
+			const validationRules = Object.fromEntries(entries);
+
+			data.validationRules = validationRules;
+		}
+
+		console.log(data, 'clean data');
+		fields.push(data);
 	};
 
 	return (
@@ -144,25 +169,25 @@ export default function FormGenerator() {
 					<div className='flex flex-col'>
 						<Label htmlFor='id'>ID</Label>
 						<Input
-							id='id'
-							{...register('id', { required: 'ID is required' })}
+							id='name'
+							{...register('name', { required: 'ID is required' })}
 						/>
-						{errors.id?.message && (
+						{errors.name?.message && (
 							<span className='text-red-500 text-sm'>
-								{String(errors.id.message)}
+								{String(errors.name.message)}
 							</span>
 						)}
 					</div>
 
 					<div className='flex flex-col'>
-						<Label htmlFor='labelName'>Label Name</Label>
+						<Label htmlFor='label'>Label Name</Label>
 						<Input
-							id='labelName'
-							{...register('labelName', { required: 'Label Name is required' })}
+							id='label'
+							{...register('label', { required: 'Label Name is required' })}
 						/>
-						{errors.labelName?.message && (
+						{errors.label?.message && (
 							<span className='text-red-500 text-sm'>
-								{String(errors.labelName.message)}
+								{String(errors.label.message)}
 							</span>
 						)}
 					</div>
@@ -201,6 +226,41 @@ export default function FormGenerator() {
 							{...register('type', { required: 'Type is required' })}
 						/>
 					</div>
+
+					{/* Multi-select options input - only show when type === 'multi-select' */}
+					{selectedType === 'multi-select' && (
+						<div className='col-span-3'>
+							<Label>Multi-Select Options</Label>
+							{optionItems.fields.map((field, index) => (
+								<div
+									key={field.id}
+									className='grid grid-cols-2 gap-4 items-end mt-2'
+								>
+									<div className='flex flex-col'>
+										<Input
+											{...register(`optionItems.${index}.value`, {
+												required: 'Option required',
+											})}
+										/>
+									</div>
+									<Button
+										type='button'
+										variant='destructive'
+										onClick={() => optionItems.remove(index)}
+									>
+										Remove
+									</Button>
+								</div>
+							))}
+							<Button
+								type='button'
+								className='mt-2'
+								onClick={() => optionItems.append({ value: '' })}
+							>
+								Add Option
+							</Button>
+						</div>
+					)}
 
 					{['text', 'number', 'email', 'date', 'password'].includes(
 						selectedType
