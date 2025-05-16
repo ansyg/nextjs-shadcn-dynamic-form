@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { useEffect } from 'react';
 import { FormField } from '@/components/shared/dynamic-form/types/form';
+import { DynamicForm } from '@/components/shared/dynamic-form/dynamic-form';
 
 const inputTypes = [
 	'text',
@@ -134,12 +135,49 @@ export default function FormGenerator() {
 			});
 
 			const validationRules = Object.fromEntries(entries);
-
-			data.validationRules = validationRules;
+			data.validationRules = validationRules as any;
 		}
 
-		console.log(data, 'clean data');
-		fields.push(data);
+		const convertToFormField = (json: any): FormField => {
+			const baseField: FormField = {
+				parentId: json.parentId,
+				name: json.name,
+				label: json.label,
+				className: json.className,
+				type: json.type,
+				render: json.render,
+				value: json.defaultValue,
+				validationRules: json.validationRules,
+			};
+
+			if (json.type === 'radio') {
+				baseField.option = json.radioOptions;
+			} else if (json.type === 'options' || json.type === 'multi-select') {
+				const optionsList = json.optionItems.map((item: any) => ({
+					name: item.value,
+				}));
+
+				baseField.option = {
+					optionLabel: 'name',
+					optionValue: 'name',
+					dataKey: 'name',
+					options: optionsList,
+				};
+			}
+
+			return baseField;
+		};
+
+		const fields: FormField[] = [convertToFormField(data)];
+
+		console.log(fields, 'clean data');
+
+		// <DynamicForm
+		// 	fields={fields}
+		// 	onSubmit={(values: any) => {
+		// 		console.log('form-data', values);
+		// 	}}
+		// />;
 	};
 
 	return (
